@@ -64,7 +64,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Loader2 } from "lucide-react";
+import { Trash2, Loader2, Upload } from "lucide-react";
+import { ImportSchoolsSheet } from "./components/import-schools-sheet";
 
 export default function SchoolsPage() {
   const [schools, setSchools] = useState<School[]>([]);
@@ -94,6 +95,7 @@ export default function SchoolsPage() {
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
+  const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
 
   // Deletion State
   const [deletingSchool, setDeletingSchool] = useState<School | null>(null);
@@ -242,6 +244,9 @@ export default function SchoolsPage() {
           </p>
         </div>
         <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+          <Button variant="outline" onClick={() => setIsImportSheetOpen(true)}>
+            <Upload className="mr-2 h-4 w-4" /> Import
+          </Button>
           <Button variant="outline" onClick={() => setIsExportSheetOpen(true)}>
             <Download className="mr-2 h-4 w-4" /> Export
           </Button>
@@ -514,6 +519,12 @@ export default function SchoolsPage() {
       <ExportSchoolsSheet
         open={isExportSheetOpen}
         onOpenChange={setIsExportSheetOpen}
+      />
+
+      <ImportSchoolsSheet
+        open={isImportSheetOpen}
+        onOpenChange={setIsImportSheetOpen}
+        onSuccess={handleEditSuccess}
       />
 
       <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
