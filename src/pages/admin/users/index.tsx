@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { UserService } from "@/lib/services/user-service";
 import {
   type DocumentData,
@@ -21,6 +22,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import {
   Select,
@@ -48,10 +53,18 @@ import {
   Trash2,
   Edit,
   Eye,
+  Shield,
+  ShieldCheck,
+  GraduationCap,
+  UserCog,
+  Plus,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserSheet } from "./user-sheet";
+import { UserEditSheet } from "@/pages/admin/users/components/user-edit-sheet";
+import { UserDetailSheet } from "@/pages/admin/users/components/user-detail-sheet";
+import { AddUserSheet } from "@/pages/admin/users/components/user-add-sheet";
 import type { UserProfile } from "@/types/user";
 import { ROLE_LABELS } from "@/types/user";
 import { formatDate } from "@/lib/utils";
@@ -59,6 +72,7 @@ import { formatDate } from "@/lib/utils";
 const LIMIT = 20;
 
 export default function UsersPage() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -67,9 +81,10 @@ export default function UsersPage() {
   const [hasMore, setHasMore] = useState(true);
 
   // Sheet State
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
+  const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false);
+  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
-  const [sheetMode, setSheetMode] = useState<"edit" | "detail" | "create">("detail");
 
   // Delete Dialog State
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -130,19 +145,40 @@ export default function UsersPage() {
     }
   };
 
-  const openSheet = (user: UserProfile | null, mode: "edit" | "detail" | "create") => {
+  const handleAssignRole = async (targetUid: string, role: string) => {
+    try {
+      setLoading(true);
+      const result = await UserService.assignRole(targetUid, role);
+      if (result.success) {
+        toast.success(result.message);
+        fetchUsers(false); // Refresh list
+      }
+    } catch (error: unknown) {
+      console.error("Error assigning role:", error);
+      const errorMessage = error instanceof Error ? error.message : "Gagal mengubah role";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openEditSheet = (user: UserProfile) => {
     setSelectedUser(user);
-    setSheetMode(mode);
-    setIsSheetOpen(true);
+    setIsEditSheetOpen(true);
+  };
+
+  const openDetailSheet = (user: UserProfile) => {
+    setSelectedUser(user);
+    setIsDetailSheetOpen(true);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Manajemen User</h1>
-        {/* <Button onClick={() => openSheet(null, "create")}>
+        <Button onClick={() => setIsAddSheetOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Tambah User
-        </Button> */}
+        </Button>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -258,12 +294,38 @@ export default function UsersPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => openSheet(user, "detail")}>
+                        <DropdownMenuItem onClick={() => openDetailSheet(user)}>
                           <Eye className="mr-2 h-4 w-4" /> Detail
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openSheet(user, "edit")}>
+                        <DropdownMenuItem onClick={() => openEditSheet(user)}>
                           <Edit className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate(`/admin/users/${user.uid}/ljk`)}>
+                          <FileText className="mr-2 h-4 w-4" /> Daftar LJK
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            <UserCog className="mr-2 h-4 w-4" />
+                            <span>Assign to Role</span>
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                              <DropdownMenuItem onClick={() => handleAssignRole(user.uid, "admin")}>
+                                <Shield className="mr-2 h-4 w-4" />
+                                <span>Admin</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleAssignRole(user.uid, "headmaster")}>
+                                <ShieldCheck className="mr-2 h-4 w-4" />
+                                <span>Headmaster</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleAssignRole(user.uid, "teacher")}>
+                                <GraduationCap className="mr-2 h-4 w-4" />
+                                <span>Teacher</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenuSub>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive"
@@ -299,11 +361,22 @@ export default function UsersPage() {
         </div>
       )}
 
-      <UserSheet
-        isOpen={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
+      <UserEditSheet
+        isOpen={isEditSheetOpen}
+        onOpenChange={setIsEditSheetOpen}
         user={selectedUser}
-        mode={sheetMode}
+        onSuccess={() => fetchUsers(false)}
+      />
+
+      <UserDetailSheet
+        isOpen={isDetailSheetOpen}
+        onOpenChange={setIsDetailSheetOpen}
+        user={selectedUser}
+      />
+
+      <AddUserSheet
+        isOpen={isAddSheetOpen}
+        onOpenChange={setIsAddSheetOpen}
         onSuccess={() => fetchUsers(false)}
       />
 

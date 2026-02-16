@@ -15,3 +15,14 @@ export interface UserProfile {
   photoUrl: string | null;
   createdAt?: Timestamp;
 }
+
+export interface UserExam {
+  id: string; // autoGenerateId
+  referenceExamId: string;
+  name: string;
+  subject: string;
+  subjectId: string;
+  grade: string;
+  gradeId: string;
+  createdAt: Timestamp;
+}

@@ -7,13 +7,13 @@ import {
   getDocs,
   getDoc,
   doc,
-  deleteDoc,
   updateDoc,
   type DocumentData,
   type QueryDocumentSnapshot,
   orderBy,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { httpsCallable } from "firebase/functions";
+import { db, functions } from "@/lib/firebase";
 import type { UserProfile } from "@/types/user";
 
 const USERS_COLLECTION = "users";
@@ -107,8 +107,49 @@ export const UserService = {
     await updateDoc(userRef, data);
   },
 
-  async deleteUser(uid: string): Promise<void> {
-    const userRef = doc(db, USERS_COLLECTION, uid);
-    await deleteDoc(userRef);
+  async deleteUser(targetUid: string): Promise<{ success: boolean }> {
+    const deleteUserFn = httpsCallable<{ targetUid: string }, { success: boolean }>(
+      functions,
+      "deleteUser"
+    );
+    const result = await deleteUserFn({ targetUid });
+    return result.data;
+  },
+
+  async assignRole(targetUid: string, newRole: string): Promise<{ success: boolean; message: string }> {
+    const updateUserRole = httpsCallable<{ targetUid: string; newRole: string }, { success: boolean; message: string }>(
+      functions,
+      "updateUserRole"
+    );
+    const result = await updateUserRole({ targetUid, newRole });
+    return result.data;
+  },
+
+  async createUser(data: { email: string; password?: string; name: string; role: string }): Promise<{ success: boolean; uid: string }> {
+    const createUserFn = httpsCallable<{ email: string; password?: string; name: string; role: string }, { success: boolean; uid: string }>(
+      functions,
+      "createUser"
+    );
+    const result = await createUserFn(data);
+    return result.data;
+  },
+
+  async fetchUserExams(userId: string): Promise<import("@/types/user").UserExam[]> {
+    const userExamsRef = collection(db, USERS_COLLECTION, userId, "exams");
+    const q = query(userExamsRef, orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as import("@/types/user").UserExam));
+  },
+
+  async getUserById(uid: string): Promise<UserProfile> {
+    const docRef = doc(db, USERS_COLLECTION, uid);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      throw new Error("User tidak ditemukan");
+    }
+    return { uid: docSnap.id, ...docSnap.data() } as UserProfile;
   },
 };

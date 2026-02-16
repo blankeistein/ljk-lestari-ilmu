@@ -27,18 +27,11 @@ import {
   User,
   School,
   Wrench,
+  ShieldAlert,
+  FileText,
 } from "lucide-react";
 import { AuthService } from "@/lib/services/auth-service";
 import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -98,17 +91,27 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const settingsNav = [
     {
+      title: "Laporan Error",
+      icon: ShieldAlert,
+      url: "/admin/error-reports",
+    },
+    {
       title: "Pengaturan",
       icon: Settings,
       url: "/admin/settings",
     },
   ];
 
-  const toolsNav = import.meta.env.DEV ? [
+  const devNav = import.meta.env.DEV ? [
     {
       title: "Account Generator",
       icon: Wrench,
       url: "/admin/tools/account-generator",
+    },
+    {
+      title: "Dummy Answers",
+      icon: FileText,
+      url: "/admin/tools/dummy-answer-generator",
     }
   ] : [];
 
@@ -175,7 +178,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <SidebarGroupLabel>Sistem</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {[...settingsNav, ...toolsNav].map((item) => (
+                {settingsNav.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
@@ -192,6 +195,30 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
+          {import.meta.env.DEV && (
+            <SidebarGroup>
+              <SidebarGroupLabel>Dev Mode</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {devNav.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={location.pathname === item.url}
+                        tooltip={item.title}
+                      >
+                        <Link to={item.url}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
@@ -261,18 +288,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b px-4 bg-background z-10 sticky top-0">
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb className="hidden md:flex">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Dashboard</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
           <div className="ml-auto flex items-center gap-2">
             <div className="relative hidden md:block">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />

@@ -10,7 +10,7 @@ import { Loader2, Users, Wrench } from "lucide-react";
 
 export default function AccountGeneratorPage() {
   const [count, setCount] = useState(10);
-  const [role, setRole] = useState("user");
+  const [role, setRole] = useState("teacher");
   const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {
@@ -84,11 +84,9 @@ export default function AccountGeneratorPage() {
                   <SelectValue placeholder="Pilih role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
                   <SelectItem value="teacher">Guru</SelectItem>
                   <SelectItem value="headmaster">Kepala Sekolah</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="random">Random</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -4,7 +4,13 @@ import AdminLayout from "@/components/layout/admin-layout";
 import AdminDashboard from "@/pages/admin/dashboard";
 import UsersPage from "@/pages/admin/users";
 import SchoolsPage from "@/pages/admin/schools";
+import ExamsPage from "@/pages/admin/exams";
+import ExamDetailPage from "@/pages/admin/exams/detail";
+import SettingsPage from "@/pages/admin/settings";
 import AccountGeneratorPage from "@/pages/admin/tools/account-generator";
+import DummyAnswerGeneratorPage from "@/pages/admin/tools/dummy-answer-generator";
+import ErrorReportsPage from "@/pages/admin/error-reports";
+import UserLJKPage from "@/pages/admin/users/user-ljk";
 
 export const adminRoutes: RouteObject = {
   path: "/admin",
@@ -23,20 +29,36 @@ export const adminRoutes: RouteObject = {
       element: <UsersPage />,
     },
     {
+      path: "users/:userId/ljk",
+      element: <UserLJKPage />,
+    },
+    {
       path: "exams",
-      element: <div className="p-4"><h1>Halaman Manajemen Ujian</h1></div>,
+      element: <ExamsPage />,
+    },
+    {
+      path: "exams/:examsId",
+      element: <ExamDetailPage />,
     },
     {
       path: "schools",
       element: <SchoolsPage />,
     },
     {
+      path: "error-reports",
+      element: <ErrorReportsPage />,
+    },
+    {
       path: "settings",
-      element: <div className="p-4"><h1>Halaman Pengaturan</h1></div>,
+      element: <SettingsPage />,
     },
     {
       path: "tools/account-generator",
       element: <AccountGeneratorPage />,
+    },
+    {
+      path: "tools/dummy-answer-generator",
+      element: <DummyAnswerGeneratorPage />,
     },
   ],
 };
