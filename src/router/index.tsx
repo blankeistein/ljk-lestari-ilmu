@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
-import { ComponentExample } from "@/components/component-example";
+import HomePage from "@/pages/home";
 import LoginPage from "@/pages/login";
 import NotFoundPage from "@/pages/errors/not-found";
 import ServerErrorPage from "@/pages/errors/server-error";
@@ -10,7 +10,7 @@ import { userRoutes } from "./user-routes";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <ComponentExample />,
+    element: <HomePage />,
     errorElement: <ServerErrorPage />,
   },
   {
