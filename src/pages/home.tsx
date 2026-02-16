@@ -5,7 +5,18 @@ import { useAuth } from "@/hooks/use-auth";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, profile } = useAuth();
+
+  const getDashboardPath = () => {
+    switch (profile?.role) {
+      case "admin":
+        return "/admin";
+      case "headmaster":
+        return "/headmaster";
+      default:
+        return "/u/dashboard"; // Assuming standard user/teacher dashboard path
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -20,7 +31,9 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-4">
             {isAuthenticated ? (
-              <Button onClick={() => navigate("/admin")}>Dashboard Admin</Button>
+              <Button onClick={() => navigate(getDashboardPath())}>
+                Dashboard {profile?.role === "admin" ? "Admin" : profile?.role === "headmaster" ? "Kepala Sekolah" : ""}
+              </Button>
             ) : (
               <Button onClick={() => navigate("/login")}>Masuk</Button>
             )}

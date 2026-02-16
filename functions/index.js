@@ -21,38 +21,35 @@ setGlobalOptions({
  */
 exports.onUserCreatedAnalytics = onDocumentCreated("users/{userId}", async (event) => {
   const snapshot = event.data;
-  if (!snapshot) {
-    logger.info("No data associated with the event");
-    return;
-  }
+  if (!snapshot) return;
 
   const db = getFirestore();
-  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const today = new Date().toISOString().split("T")[0];
 
   try {
     const dashboardRef = db.collection("analytics").doc("dashboard_admin");
     const growthDocRef = dashboardRef.collection("user_growth").doc(today);
+    const batch = db.batch();
 
-    await db.runTransaction(async (transaction) => {
-      // 1. Update total_user in dashboard
-      transaction.set(dashboardRef, {
-        total_user: FieldValue.increment(1),
-        updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
+    // 1. Update total global
+    batch.set(dashboardRef, {
+      totalUser: FieldValue.increment(1),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
 
-      // 2. Update growth document for today
-      transaction.set(growthDocRef, {
-        count: FieldValue.increment(1),
-        date: today,
-        updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
-    });
+    // 2. Update pertumbuhan harian
+    batch.set(growthDocRef, {
+      count: FieldValue.increment(1),
+      date: today,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
 
-    logger.info(`Analytics updated for user ${event.params.userId}`);
+    await batch.commit();
   } catch (error) {
     logger.error("Error updating user creation analytics:", error);
   }
 });
+
 
 /**
  * Triggered when a new user is created in the "users" collection.
@@ -60,10 +57,7 @@ exports.onUserCreatedAnalytics = onDocumentCreated("users/{userId}", async (even
  */
 exports.addTotalTeacher = onDocumentCreated("users/{userId}", async (event) => {
   const snapshot = event.data;
-  if (!snapshot) {
-    logger.info("No data associated with the event");
-    return;
-  }
+  if (!snapshot) return;
 
   const data = snapshot.data();
 
@@ -86,10 +80,7 @@ exports.addTotalTeacher = onDocumentCreated("users/{userId}", async (event) => {
 exports.analyticExamSchool = onDocumentCreated("exams/{examId}/answers/{answerId}", async (event) => {
   const { examId } = event.params;
   const snapshot = event.data;
-  if (!snapshot) {
-    logger.info("No data associated with the event");
-    return;
-  }
+  if (!snapshot) return;
 
   const data = snapshot.data();
   const { schoolId, gradeId, subjectId, studentAnswers } = data;
@@ -412,7 +403,7 @@ exports.onAnswerCreatedAnalytics = onDocumentCreated("exams/{ulanganId}/answers/
 
   try {
     await dashboardRef.set({
-      total_ljk: FieldValue.increment(1),
+      totalLJK: FieldValue.increment(1),
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
 

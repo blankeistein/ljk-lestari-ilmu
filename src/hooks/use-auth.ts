@@ -21,7 +21,7 @@ export function useAuth() {
             setProfile({
               ...userProfile,
               email: userProfile.email || firebaseUser.email,
-              displayName: userProfile.displayName || firebaseUser.displayName,
+              name: userProfile.name || firebaseUser.displayName,
             });
           } else {
             // Default profile for new users
@@ -29,7 +29,8 @@ export function useAuth() {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               role: "user",
-              displayName: firebaseUser.displayName,
+              name: firebaseUser.displayName,
+              photoUrl: firebaseUser.photoURL,
             });
           }
         } catch (error) {
@@ -46,5 +47,23 @@ export function useAuth() {
     return () => unsubscribe();
   }, []);
 
-  return { user, profile, loading, isAuthenticated: !!user };
+  const refreshProfile = async () => {
+    if (user) {
+      try {
+        const userProfile = await AuthService.getUserProfile(user.uid);
+        console.log(userProfile)
+        if (userProfile) {
+          setProfile({
+            ...userProfile,
+            email: userProfile.email || user.email,
+            name: userProfile.name || user.displayName,
+          });
+        }
+      } catch (error) {
+        console.error("Error refreshing user profile:", error);
+      }
+    }
+  };
+
+  return { user, profile, loading, isAuthenticated: !!user, refreshProfile };
 }

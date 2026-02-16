@@ -26,8 +26,8 @@ export function useDashboardStats() {
     const unsubscribeTotal = onSnapshot(doc(db, "analytics", "dashboard_admin"), (doc) => {
       if (doc.exists()) {
         const data = doc.data();
-        setTotalUser(data.total_user || 0);
-        setTotalLjk(data.total_ljk || 0);
+        setTotalUser(data.totalUser || 0);
+        setTotalLjk(data.totalLJK || 0);
       }
       setLoading(false);
     }, (error) => {

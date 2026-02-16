@@ -23,6 +23,7 @@ export interface FetchUsersParams {
   lastVisible: QueryDocumentSnapshot<DocumentData> | null;
   searchQuery?: string;
   role?: string;
+  schoolId?: string;
 }
 
 export interface FetchUsersResult {
@@ -32,7 +33,7 @@ export interface FetchUsersResult {
 }
 
 export const UserService = {
-  async fetchUsers({ limitCount, lastVisible, searchQuery, role }: FetchUsersParams): Promise<FetchUsersResult> {
+  async fetchUsers({ limitCount, lastVisible, searchQuery, role, schoolId }: FetchUsersParams): Promise<FetchUsersResult> {
     const usersRef = collection(db, USERS_COLLECTION);
     let q;
 
@@ -47,6 +48,10 @@ export const UserService = {
           if (role && role !== "all" && userData?.role !== role) {
             return { users: [], lastVisible: null, hasMore: false };
           }
+          // Filter by schoolId if specified
+          if (schoolId && userData?.schoolId !== schoolId) {
+            return { users: [], lastVisible: null, hasMore: false };
+          }
           return {
             users: [{ uid: docSnap.id, ...userData } as UserProfile],
             lastVisible: null,
@@ -56,7 +61,6 @@ export const UserService = {
       }
 
       // Search by email prefix
-      // Note: Adding a role filter here would requires a composite index (email, role)
       const constraints = [
         where("email", ">=", searchQuery),
         where("email", "<=", searchQuery + "\uf8ff"),
@@ -68,11 +72,19 @@ export const UserService = {
         constraints.unshift(where("role", "==", role));
       }
 
+      if (schoolId) {
+        constraints.unshift(where("schoolId", "==", schoolId));
+      }
+
       q = query(usersRef, ...constraints);
     } else {
       const queryConstraints = [];
       if (role && role !== "all") {
         queryConstraints.push(where("role", "==", role));
+      }
+
+      if (schoolId) {
+        queryConstraints.push(where("schoolId", "==", schoolId));
       }
 
       // Order by createdAt by default for better experience

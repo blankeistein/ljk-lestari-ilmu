@@ -13,6 +13,7 @@ export interface UserProfile {
   role: string;
   name: string | null;
   photoUrl: string | null;
+  schoolId?: string;
   createdAt?: Timestamp;
 }
 

@@ -13,6 +13,11 @@ export const AuthService = {
     return signInWithPopup(auth, provider);
   },
 
+  async loginWithEmail(email: string, pass: string): Promise<UserCredential> {
+    const { signInWithEmailAndPassword } = await import("firebase/auth");
+    return signInWithEmailAndPassword(auth, email, pass);
+  },
+
   async getUserProfile(uid: string): Promise<UserProfile | null> {
     const userDoc = await getDoc(doc(db, "users", uid));
     if (userDoc.exists()) {
