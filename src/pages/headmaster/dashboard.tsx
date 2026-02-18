@@ -3,7 +3,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, FileText, ClipboardList, BookOpen } from "lucide-react";
+import { Users, ClipboardList } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HeadmasterDashboard() {
@@ -38,6 +38,8 @@ export default function HeadmasterDashboard() {
       unsubscribeAnalytics();
     };
   }, [profile?.schoolId]);
+
+  console.log(profile?.schoolId)
 
   // Derived loading state
   const isDashboardLoading = loading && !!profile?.schoolId;
@@ -86,36 +88,6 @@ export default function HeadmasterDashboard() {
             )}
             <p className="text-xs text-muted-foreground mt-1">
               Data hasil ujian masuk
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Ujian Berjalan
-            </CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Sesi aktif hari ini
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Rata-rata Nilai
-            </CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">0%</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Dari seluruh mata pelajaran
             </p>
           </CardContent>
         </Card>

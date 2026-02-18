@@ -105,16 +105,16 @@ export default function HeadmasterLayout({ children }: HeadmasterLayoutProps) {
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <div className="flex items-center gap-2 px-2 py-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex items-center gap-2 py-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <ClipboardList className="h-4 w-4" />
             </div>
             <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-              <span className="font-semibold">LJK Lestari Ilmu</span>
+              <span className="font-semibold line-clamp-1">LJK Lestari Ilmu</span>
               {isSchoolLoading ? (
                 <Skeleton className="h-3 w-20 mt-1" />
               ) : (
-                <span className="text-xs text-muted-foreground truncate max-w-37.5">
+                <span className="text-xs text-muted-foreground truncate max-w-37.5 line-clamp-1">
                   Kepala Sekolah
                 </span>
               )}

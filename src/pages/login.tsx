@@ -8,9 +8,10 @@ import { AuthService } from "@/lib/services/auth-service";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel, FieldGroup, FieldSeparator } from "@/components/ui/field";
+import { getDashboardPath } from "@/lib/utils";
 
 export default function LoginPage() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, profile } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,9 +20,10 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       setIsLoggingIn(true);
-      await AuthService.loginWithGoogle();
+      const cred = await AuthService.loginWithGoogle();
+      const userProfile = await AuthService.getUserProfile(cred.user.uid);
       toast.success("Berhasil masuk!");
-      navigate("/");
+      navigate(getDashboardPath(userProfile?.role));
     } catch (error) {
       console.error("Login error:", error);
       const message = error instanceof Error ? error.message : "Terjadi kesalahan";
@@ -40,9 +42,10 @@ export default function LoginPage() {
 
     try {
       setIsLoggingIn(true);
-      await AuthService.loginWithEmail(email, password);
+      const cred = await AuthService.loginWithEmail(email, password);
+      const userProfile = await AuthService.getUserProfile(cred.user.uid);
       toast.success("Berhasil masuk!");
-      navigate("/");
+      navigate(getDashboardPath(userProfile?.role));
     } catch (error) {
       console.error("Login error:", error);
       const message = error instanceof Error ? error.message : "Email atau password salah";
@@ -61,7 +64,7 @@ export default function LoginPage() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={getDashboardPath(profile?.role)} replace />;
   }
 
   return (

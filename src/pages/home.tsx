@@ -2,21 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Scan, BarChart3, Cloud, Zap } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { getDashboardPath } from "@/lib/utils";
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { isAuthenticated, profile } = useAuth();
 
-  const getDashboardPath = () => {
-    switch (profile?.role) {
-      case "admin":
-        return "/admin";
-      case "headmaster":
-        return "/headmaster";
-      default:
-        return "/u/dashboard"; // Assuming standard user/teacher dashboard path
-    }
-  };
+  const dashboardPath = getDashboardPath(profile?.role);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -31,7 +23,7 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-4">
             {isAuthenticated ? (
-              <Button onClick={() => navigate(getDashboardPath())}>
+              <Button onClick={() => navigate(dashboardPath)}>
                 Dashboard {profile?.role === "admin" ? "Admin" : profile?.role === "headmaster" ? "Kepala Sekolah" : ""}
               </Button>
             ) : (

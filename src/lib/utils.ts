@@ -43,3 +43,17 @@ export function formatDate(date: unknown) {
     timeStyle: "short",
   }).format(d);
 }
+
+export function getDashboardPath(role?: string) {
+  switch (role) {
+    case "admin":
+      return "/admin";
+    case "headmaster":
+      return "/headmaster";
+    case "teacher":
+    case "user":
+      return "/dashboard";
+    default:
+      return "/dashboard";
+  }
+}
