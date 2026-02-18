@@ -191,7 +191,7 @@ export default function UsersPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="w-full sm:w-[200px]">
+        <div className="w-full sm:w-50">
           <Select value={roleFilter} onValueChange={(val) => {
             setLastVisible(null);
             setRoleFilter(val);

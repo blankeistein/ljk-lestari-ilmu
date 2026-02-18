@@ -150,7 +150,7 @@ export default function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[350px]">
+            <ScrollArea className="h-87.5">
               <div className="space-y-4">
                 {recentSales.map((item, index) => (
                   <div key={index} className="flex items-center justify-between">

@@ -155,7 +155,7 @@ export function GradeSection({
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <span className="text-xs text-muted-foreground truncate max-w-[150px] block font-mono">
+                      <span className="text-xs text-muted-foreground truncate max-w-37.5 block font-mono">
                         {Object.entries(subject.answerKey)
                           .slice(0, 5)
                           .map(([q, a]) => `${q}:${a}`)

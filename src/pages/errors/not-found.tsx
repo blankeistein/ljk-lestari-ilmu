@@ -1,8 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FileQuestion, Home, MoveLeft } from "lucide-react";
 
 export default function NotFoundPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
       <div className="relative mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-muted">
@@ -20,11 +23,9 @@ export default function NotFoundPage() {
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4">
-        <Button asChild variant="outline" size="lg">
-          <Link to={-1 as any}>
-            <MoveLeft className="mr-2 h-4 w-4" />
-            Kembali
-          </Link>
+        <Button onClick={() => navigate(-1)} variant="outline" size="lg">
+          <MoveLeft className="mr-2 h-4 w-4" />
+          Kembali
         </Button>
         <Button asChild size="lg">
           <Link to="/">
