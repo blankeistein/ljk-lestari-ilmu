@@ -11,6 +11,7 @@ import AccountGeneratorPage from "@/pages/admin/tools/account-generator";
 import DummyAnswerGeneratorPage from "@/pages/admin/tools/dummy-answer-generator";
 import ErrorReportsPage from "@/pages/admin/error-reports";
 import UserLJKPage from "@/pages/admin/users/user-ljk";
+import AdminProfilePage from "@/pages/admin/profile";
 
 export const adminRoutes: RouteObject = {
   path: "/admin",
@@ -51,6 +52,10 @@ export const adminRoutes: RouteObject = {
     {
       path: "settings",
       element: <SettingsPage />,
+    },
+    {
+      path: "profile",
+      element: <AdminProfilePage />,
     },
     {
       path: "tools/account-generator",

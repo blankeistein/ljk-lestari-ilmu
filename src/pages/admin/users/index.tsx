@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { UserService } from "@/lib/services/user-service";
 import {
   type DocumentData,
@@ -59,6 +59,8 @@ import {
   UserCog,
   Plus,
   FileText,
+  X,
+  School,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -73,6 +75,9 @@ const LIMIT = 20;
 
 export default function UsersPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const schoolId = searchParams.get("schoolId");
+
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -97,6 +102,7 @@ export default function UsersPage() {
         lastVisible: isLoadMore ? startAfterDoc : null,
         searchQuery: searchQuery,
         role: roleFilter,
+        schoolId: schoolId || undefined,
       });
 
       if (isLoadMore) {
@@ -113,7 +119,7 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, roleFilter]);
+  }, [searchQuery, roleFilter, schoolId]);
 
   // Initial load and search effect
   useEffect(() => {
@@ -208,6 +214,19 @@ export default function UsersPage() {
             </SelectContent>
           </Select>
         </div>
+        {schoolId && (
+          <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20 animate-in fade-in zoom-in-95 duration-200">
+            <School className="h-4 w-4 text-primary" />
+            <span className="text-xs font-medium text-primary">School ID: {schoolId}</span>
+            <button
+              onClick={() => navigate("/admin/users")}
+              className="ml-1 p-0.5 hover:bg-primary/20 rounded-full transition-colors"
+              title="Clear school filter"
+            >
+              <X className="h-3.5 w-3.5 text-primary" />
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="border rounded-md">

@@ -230,7 +230,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   >
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={profile?.name || ""} alt={profile?.name || "User"} />
+                      <AvatarImage src={profile?.photoUrl || ""} alt={profile?.name || "User"} />
                       <AvatarFallback className="rounded-lg">
                         {profile?.name?.substring(0, 2).toUpperCase() || "AD"}
                       </AvatarFallback>
@@ -251,7 +251,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <DropdownMenuLabel className="p-0 font-normal">
                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                       <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarImage src={profile?.name || ""} alt={profile?.name || "User"} />
+                        <AvatarImage src={profile?.photoUrl || ""} alt={profile?.name || "User"} />
                         <AvatarFallback className="rounded-lg">
                           {profile?.name?.substring(0, 2).toUpperCase() || "AD"}
                         </AvatarFallback>
@@ -264,13 +264,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
-                    <DropdownMenuItem>
-                      <User className="mr-2 h-4 w-4" />
-                      Profil
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Pengaturan Akun
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        Profil
+                      </Link>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />

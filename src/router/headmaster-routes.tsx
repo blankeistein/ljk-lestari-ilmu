@@ -5,6 +5,8 @@ import SetSchoolPage from "@/pages/headmaster/set-school";
 import HeadmasterProfilePage from "@/pages/headmaster/profile";
 import HeadmasterDashboard from "@/pages/headmaster/dashboard";
 import HeadmasterUsersPage from "@/pages/headmaster/users";
+import HeadmasterReportsPage from "@/pages/headmaster/reports";
+import HeadmasterReportDetailPage from "@/pages/headmaster/reports/detail";
 
 export const headmasterRoutes: RouteObject = {
   path: "/headmaster",
@@ -20,7 +22,11 @@ export const headmasterRoutes: RouteObject = {
     },
     {
       path: "reports",
-      element: <div className="p-4"><h1>Laporan Hasil Ujian</h1></div>,
+      element: <HeadmasterReportsPage />,
+    },
+    {
+      path: "reports/:examId",
+      element: <HeadmasterReportDetailPage />,
     },
     {
       path: "users",

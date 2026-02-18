@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { type DocumentData, type QueryDocumentSnapshot } from "firebase/firestore";
 import {
   School as SchoolIcon,
@@ -11,6 +12,7 @@ import {
   Download,
   ChartBar,
   Pencil,
+  Users,
 } from "lucide-react";
 import type { School, Province, Regency, District } from "@/types/school";
 import { SchoolService } from "@/lib/services/school-service";
@@ -68,6 +70,7 @@ import { Trash2, Loader2, Upload } from "lucide-react";
 import { ImportSchoolsSheet } from "./components/import-schools-sheet";
 
 export default function SchoolsPage() {
+  const navigate = useNavigate();
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -458,6 +461,13 @@ export default function SchoolsPage() {
                         >
                           <Pencil className="mr-1 h-4 w-4" />
                           Edit Detail
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="cursor-pointer"
+                          onClick={() => navigate(`/admin/users?schoolId=${school.id}`)}
+                        >
+                          <Users className="mr-1 h-4 w-4" />
+                          Lihat Guru
                         </DropdownMenuItem>
                         <DropdownMenuItem className="cursor-pointer">
                           <ChartBar className="mr-1 h-4 w-4" />

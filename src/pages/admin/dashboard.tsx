@@ -144,43 +144,6 @@ export default function AdminDashboard() {
         </Card>
         <Card className="col-span-3">
           <CardHeader>
-            <CardTitle>Aktivitas Terbaru</CardTitle>
-            <CardDescription>
-              Aktivitas scan terakhir dari pengguna.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-87.5">
-              <div className="space-y-4">
-                {recentSales.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.email}`} alt="Avatar" />
-                        <AvatarFallback>{item.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium leading-none">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">{item.email}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">{item.amount}</div>
-                      <Badge variant={item.status === 'success' ? 'secondary' : item.status === 'processing' ? 'outline' : 'destructive'} className="text-[10px] px-1 py-0 h-5">
-                        {item.status === 'success' ? 'Sukses' : item.status === 'processing' ? 'Proses' : 'Gagal'}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
             <CardTitle>Status Server</CardTitle>
             <CardDescription>Koneksi ke layanan backend</CardDescription>
           </CardHeader>

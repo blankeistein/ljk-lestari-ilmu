@@ -13,6 +13,7 @@ import {
   onSnapshot,
   serverTimestamp,
   where,
+  limit,
 } from "firebase/firestore";
 import type { Exam, Grade, Subject } from "@/types/exam";
 
@@ -20,6 +21,21 @@ export const ExamService = {
   async getExams(): Promise<Exam[]> {
     const examsRef = collection(db, "exams");
     const q = query(examsRef, orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Exam));
+  },
+
+  async getReportExams(limitCount: number = 20): Promise<Exam[]> {
+    const examsRef = collection(db, "exams");
+    const q = query(
+      examsRef,
+      where("status", "in", ["active", "closed"]),
+      orderBy("createdAt", "desc"),
+      limit(limitCount)
+    );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({
       id: doc.id,
@@ -138,5 +154,19 @@ export const ExamService = {
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as import("@/types/exam").ExamAnswer));
+  },
+
+  async getGradeSubjectStats(examId: string, schoolId: string, gradeId: string, subjectId: string): Promise<import("@/types/exam").GradeSubjectStats | null> {
+    const docRef = doc(
+      db,
+      "exams", examId,
+      "stats_per_school", schoolId,
+      "perGradeSubject", `${gradeId}_${subjectId}`
+    );
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data() as import("@/types/exam").GradeSubjectStats;
+    }
+    return null;
   },
 };

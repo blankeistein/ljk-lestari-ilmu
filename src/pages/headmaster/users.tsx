@@ -193,7 +193,7 @@ export default function HeadmasterStaffPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Opsi</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => openDetailSheet(user)}>
-                          <Eye className="mr-2 h-4 w-4" /> Detail Profil
+                          <Eye className="mr-2 h-4 w-4" /> Profil
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -14,7 +14,11 @@ import {
   Circle,
   Activity,
   CheckCircle2,
+  CheckSquare,
+  Square,
+  ChevronDown,
 } from "lucide-react";
+import { toast } from "sonner";
 import { ErrorReportService } from "@/lib/services/error-report-service";
 import type { ErrorReport } from "@/types/error-report";
 import { Button } from "@/components/ui/button";
@@ -60,6 +64,8 @@ export default function ErrorReportsPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const lastVisibleRef = useRef<unknown>(null);
 
   const fetchReports = useCallback(async (isLoadMore = false) => {
@@ -104,6 +110,37 @@ export default function ErrorReportsPage() {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleBatchUpdateStatus = async (newStatus: ErrorReport['status']) => {
+    if (selectedIds.length === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      await ErrorReportService.batchUpdateStatus(selectedIds, newStatus);
+      setReports(prev => prev.map(r => selectedIds.includes(r.id!) ? { ...r, status: newStatus } : r));
+      toast.success(`${selectedIds.length} laporan berhasil diperbarui`);
+      setSelectedIds([]);
+    } catch (error) {
+      console.error("Error bulk updating status:", error);
+      toast.error("Gagal memperbarui status secara massal");
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredReports.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredReports.map(r => r.id!));
+    }
+  };
+
+  const toggleSelect = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   };
 
   const getStatusConfig = (status: ErrorReport['status']) => {
@@ -210,10 +247,72 @@ export default function ErrorReportsPage() {
         </Select>
       </div>
 
-      <div className="rounded-xl border bg-card shadow-lg overflow-hidden transition-all duration-300">
+      {selectedIds.length > 0 && (
+        <div className="flex items-center gap-4 bg-primary/5 border border-primary/20 p-4 rounded-2xl animate-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center gap-2">
+            <CheckSquare className="h-5 w-5 text-primary" />
+            <span className="text-sm font-bold text-primary">
+              {selectedIds.length} Laporan Terpilih
+            </span>
+          </div>
+          <div className="h-4 w-px bg-primary/20 mx-2" />
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Ubah Status Ke:</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="rounded-xl h-9 gap-2 shadow-sm" disabled={isBulkUpdating}>
+                  {isBulkUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Activity className="h-3 w-3" />}
+                  Pilih Status
+                  <ChevronDown className="h-3 w-3 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="rounded-xl p-2 shadow-xl border-2">
+                {(['pending', 'investigating', 'resolved'] as const).map((s) => {
+                  const cfg = getStatusConfig(s);
+                  const Icon = cfg.icon;
+                  return (
+                    <DropdownMenuItem
+                      key={s}
+                      onClick={() => handleBatchUpdateStatus(s)}
+                      className="flex items-center gap-3 p-2.5 rounded-lg cursor-pointer hover:bg-muted transition-colors mb-1 last:mb-0"
+                    >
+                      <Icon className="h-4 w-4 opacity-70" />
+                      <span className="font-bold text-sm">{cfg.label}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto text-muted-foreground hover:text-foreground"
+            onClick={() => setSelectedIds([])}
+          >
+            Batal
+          </Button>
+        </div>
+      )}
+
+      <div className="rounded-xl border bg-card shadow-lg overflow-x-auto transition-all duration-300">
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
+              <TableHead className="w-12 text-center">
+                <button
+                  onClick={toggleSelectAll}
+                  className="flex items-center justify-center h-5 w-5 rounded border border-muted-foreground/30 hover:border-primary transition-colors bg-background"
+                >
+                  {selectedIds.length === filteredReports.length && filteredReports.length > 0 ? (
+                    <CheckSquare className="h-3.5 w-3.5 text-primary fill-primary/10" />
+                  ) : selectedIds.length > 0 ? (
+                    <div className="h-2 w-2 bg-primary rounded-sm" />
+                  ) : (
+                    <Square className="h-3.5 w-3.5 opacity-0" />
+                  )}
+                </button>
+              </TableHead>
               <TableHead className="w-50">Waktu</TableHead>
               <TableHead>Pesan Error</TableHead>
               <TableHead>Status</TableHead>
@@ -225,6 +324,7 @@ export default function ErrorReportsPage() {
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
+                  <TableCell className="w-12 text-center"><Skeleton className="h-5 w-5 mx-auto" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-64" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-20" /></TableCell>
@@ -234,7 +334,7 @@ export default function ErrorReportsPage() {
               ))
             ) : filteredReports.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-64 text-center">
+                <TableCell colSpan={6} className="h-64 text-center">
                   <div className="flex flex-col items-center justify-center text-muted-foreground">
                     <ShieldAlert className="h-16 w-16 mb-4 opacity-10" />
                     <p className="text-lg font-medium">Tidak ada laporan error</p>
@@ -248,9 +348,18 @@ export default function ErrorReportsPage() {
                 return (
                   <TableRow
                     key={report.id}
-                    className="group hover:bg-muted/40 cursor-pointer transition-colors"
+                    className={`group hover:bg-muted/40 cursor-pointer transition-colors ${selectedIds.includes(report.id!) ? 'bg-primary/3' : ''}`}
                     onClick={() => setSelectedReport(report)}
                   >
+                    <TableCell className="text-center" onClick={(e) => toggleSelect(report.id!, e)}>
+                      <button
+                        className={`flex items-center justify-center h-5 w-5 rounded border transition-colors bg-background ${selectedIds.includes(report.id!) ? 'border-primary' : 'border-muted-foreground/30 group-hover:border-primary/50'}`}
+                      >
+                        {selectedIds.includes(report.id!) && (
+                          <CheckSquare className="h-3.5 w-3.5 text-primary fill-primary/10" />
+                        )}
+                      </button>
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Clock className="h-3 w-3" />

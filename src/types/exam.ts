@@ -39,3 +39,16 @@ export interface ExamAnswer {
   uploadedAt: Timestamp;
   isDummy?: boolean;
 }
+
+export interface QuestionStats {
+  correct?: number;
+  incorrect?: number;
+  blank?: number;
+  choices?: Record<string, number>;
+}
+
+export interface GradeSubjectStats {
+  totalAnswer: number;
+  updatedAt: Timestamp;
+  detail: Record<string, QuestionStats>;
+}

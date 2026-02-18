@@ -77,5 +77,26 @@ export const ErrorReportService = {
       console.error("Failed to fetch error reports:", err);
       throw err;
     }
+  },
+
+  async batchUpdateStatus(reportIds: string[], status: ErrorReport['status']) {
+    try {
+      const { writeBatch, doc, serverTimestamp } = await import("firebase/firestore");
+      const batch = writeBatch(db);
+
+      reportIds.forEach((id) => {
+        const reportRef = doc(db, "error_reports", id);
+        const updateData: { status: ErrorReport['status']; resolvedAt?: unknown } = { status };
+        if (status === 'resolved') {
+          updateData.resolvedAt = serverTimestamp();
+        }
+        batch.update(reportRef, updateData);
+      });
+
+      await batch.commit();
+    } catch (err) {
+      console.error("Failed to batch update status:", err);
+      throw err;
+    }
   }
 };

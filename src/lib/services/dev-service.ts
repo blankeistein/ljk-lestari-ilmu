@@ -3,6 +3,8 @@ import { httpsCallable } from "firebase/functions";
 import {
   collection,
   getDocs,
+  getDoc,
+  doc,
   query,
   limit,
   addDoc,
@@ -52,13 +54,28 @@ export const DevService = {
 
     // 3. Get Subject
     let targetSubjectId = subjectId;
+    let subjectLayout = 50; // Default
+    let answerKey: Record<string, string> = {};
+
     if (!targetSubjectId) {
       const subjectsRef = collection(db, "exams", targetExamId, "grades", targetGradeId, "subjects");
       const subjectsSnap = await getDocs(subjectsRef);
       if (subjectsSnap.empty) {
         throw new Error("Ujian/Kelas ini tidak memiliki mata pelajaran. Tambahkan mata pelajaran terlebih dahulu.");
       }
-      targetSubjectId = subjectsSnap.docs[0].id;
+      const subjectDoc = subjectsSnap.docs[0];
+      targetSubjectId = subjectDoc.id;
+      const subData = subjectDoc.data();
+      subjectLayout = parseInt(subData.layout || "50");
+      answerKey = subData.answerKey || {};
+    } else {
+      const subjectRef = doc(db, "exams", targetExamId, "grades", targetGradeId, "subjects", targetSubjectId);
+      const subjectSnap = await getDoc(subjectRef);
+      if (subjectSnap.exists()) {
+        const subData = subjectSnap.data();
+        subjectLayout = parseInt(subData.layout || "50");
+        answerKey = subData.answerKey || {};
+      }
     }
 
     // Use provided schoolId or default to a dummy one if not provided (though page will require it)
@@ -72,28 +89,50 @@ export const DevService = {
 
     const promises = [];
     const options = ["A", "B", "C", "D", "E"];
+    const indonesianNames = [
+      "Budi Santoso", "Siti Aminah", "Agus Setiawan", "Dewi Lestari", "Iwan Fals",
+      "Rina Mutia", "Joko Widodo", "Ani Yudhoyono", "Eko Prasetyo", "Linda Wati",
+      "Hadi Saputra", "Maya Sari", "Andi Wijaya", "Rizky Pratama", "Dian Sastro",
+      "Guntur Bumi", "Sari Indah", "Fajar Ramadhan", "Putri Ayu", "Kevin Sanjaya"
+    ];
 
     for (let i = 0; i < count; i++) {
-      const studentNo = (Math.floor(Math.random() * 1000) + 1).toString();
-      const studentName = `Siswa Dummy ${Math.floor(Math.random() * 1000)}`;
+      const sequenceNo = (i + 1).toString().padStart(3, '0');
+      const studentNo = `2024${sequenceNo}`;
+      const baseName = indonesianNames[i % indonesianNames.length];
+      const studentName = `${baseName} - ${i + 1}`;
 
-      // Generate random answers for 50 questions
+      // Generate random answers based on subject layout and answer key
       const studentAnswers: Record<string, { selected: string; isCorrect: boolean }> = {};
       let correctCount = 0;
       let wrongCount = 0;
       let blankCount = 0;
 
-      for (let q = 1; q <= 50; q++) {
-        const isAnswered = Math.random() > 0.1; // 10% chance blank
+      for (let q = 1; q <= subjectLayout; q++) {
+        const qStr = q.toString();
+        const correctAnswer = answerKey[qStr];
+
+        const isAnswered = Math.random() > 0.05; // 5% chance blank
         if (!isAnswered) {
           blankCount++;
           continue;
         }
 
-        const selected = options[Math.floor(Math.random() * options.length)];
-        const isCorrect = Math.random() > 0.5; // 50% chance correct
+        // Logic: 70% chance to be correct if key exists, otherwise total random
+        const shouldBeCorrect = correctAnswer ? Math.random() > 0.3 : Math.random() > 0.5;
 
-        studentAnswers[q.toString()] = {
+        let selected = "";
+        if (shouldBeCorrect && correctAnswer) {
+          selected = correctAnswer;
+        } else {
+          // Select wrong answer (randomize until not key)
+          const wrongOptions = correctAnswer ? options.filter(o => o !== correctAnswer) : options;
+          selected = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
+        }
+
+        const isCorrect = selected === correctAnswer;
+
+        studentAnswers[qStr] = {
           selected,
           isCorrect
         };
@@ -112,7 +151,7 @@ export const DevService = {
         wrong: wrongCount,
         blank: blankCount,
         studentAnswers,
-        photoUrl: "https://placehold.co/600x400?text=LJK+Scan+Dummy",
+        photoUrl: `https://placehold.co/600x400?text=${encodeURIComponent(studentName)}`,
         uploadedBy: targetUploadedBy,
         uploadedAt: serverTimestamp(),
         isDummy: true // Flag to identify dummy data
