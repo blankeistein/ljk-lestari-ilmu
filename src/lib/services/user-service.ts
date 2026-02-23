@@ -156,12 +156,23 @@ export const UserService = {
     } as import("@/types/user").UserExam));
   },
 
-  async getUserById(uid: string): Promise<UserProfile> {
+  async fetchUserById(uid: string): Promise<UserProfile> {
     const docRef = doc(db, USERS_COLLECTION, uid);
     const docSnap = await getDoc(docRef);
     if (!docSnap.exists()) {
       throw new Error("User tidak ditemukan");
     }
     return { uid: docSnap.id, ...docSnap.data() } as UserProfile;
+  },
+
+  async fetchTeachers(schoolId?: string): Promise<UserProfile[]> {
+    const usersRef = collection(db, USERS_COLLECTION);
+    const constraints = [where("role", "==", "teacher")];
+    if (schoolId) {
+      constraints.push(where("schoolId", "==", schoolId));
+    }
+    const q = query(usersRef, ...constraints);
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile));
   },
 };

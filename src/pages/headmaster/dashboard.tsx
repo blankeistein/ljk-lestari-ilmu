@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, ClipboardList } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,7 +18,7 @@ export default function HeadmasterDashboard() {
     }
 
     // Listen to analytics details
-    const unsubscribeAnalytics = onSnapshot(doc(db, "analytic_by_school", profile.schoolId), (docSnap) => {
+    const unsubscribeAnalytics = onSnapshot(doc(db, "analytics_by_school", profile.schoolId), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setTotalTeacher(data.totalTeacher || 0);

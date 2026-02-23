@@ -8,14 +8,17 @@ import App from './App.tsx'
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@/hooks/auth-context"
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
       <TooltipProvider>
         <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-          <App />
-          <Toaster position="bottom-right" />
+          <AuthProvider>
+            <App />
+            <Toaster position="bottom-right" />
+          </AuthProvider>
         </ThemeProvider>
       </TooltipProvider>
     </HelmetProvider>

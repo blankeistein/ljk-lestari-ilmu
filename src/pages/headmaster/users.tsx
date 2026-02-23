@@ -35,7 +35,7 @@ import { UserDetailSheet } from "@/pages/admin/users/components/user-detail-shee
 import type { UserProfile } from "@/types/user";
 import { ROLE_LABELS } from "@/types/user";
 import { formatDate } from "@/lib/utils";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth-context";
 
 const LIMIT = 20;
 

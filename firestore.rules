@@ -1,126 +1,111 @@
 rules_version = '2';
 
 service cloud.firestore {
-	match /databases/{database}/documents {
-    function isAdmin() {
-      return request.auth != null && 
-            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'teacher') == 'admin';
+  match /databases/{database}/documents {
+    // Mengecek apakah user terautentikasi
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    match /analytics/dahsboard_admin {
-      allow read: if request.auth != null;
+    // Cek admin
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.role == 'admin';
+    }
 
-      match /user_growth {
-        allow read: if request.auth != null;
-      }
+    // Cek kepemilikan dokumen
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Fungsi helper untuk cek apakah ujian sedang dibuka
+    function isExamOpen(examsId) {
+      let examData = get(/databases/$(database)/documents/exams/$(examsId)).data;
+      return examData.status != "draft" && examData.status != "closed";
+    }
+
+    // Global: Analytics & Dashboards
+    match /analytics/{document=**} {
+      allow read: if isAdmin();
+      allow write: if false; 
+    }
+
+    match /analytics_by_school/{schoolId} {
+      allow read: if isSignedIn();
     }
 
     // Rules for users collection
     match /users/{userId} {
-      allow read: if request.auth != null;
-      
-      // Allow users to create, and update their own data
-      allow update, create: if (
-        request.auth != null && (
-          isAdmin() ||
+      allow read: if isSignedIn();
 
-          request.auth.uid == userId && !('role' in request.resource.affectedKeys())
-        )
-      )
-      
+      allow create: if isSignedIn();
+
+      // Allow users to create, and update their own data
+      allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role)
+
       // Allow delete by admin
-      allow delete: if request.auth != null && isAdmin();
-      
+      allow delete: if isAdmin();
+
       match /exams/{examsId} {
-        // Read: Bisa dilihat oleh pemilik data (userId) ATAU Admin.
-        allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
-        
-        // Write: Hanya pemilik data (userId) ATAU Admin yang bisa create/update.
-        allow create, update: if request.auth != null && (request.auth.uid == userId || isAdmin());
-    
-        // Delete: Sebaiknya dibatasi (Opsional: Admin only atau User juga bisa)
-        allow delete: if request.auth != null && (request.auth.uid == userId || isAdmin());
+        allow read, write: if isAdmin() || isOwner(userId);
       }
     }
-    
-    // Rules for regional and school data (Read-only for users)
-    match /provinces/{id} {
-      allow read: if request.auth != null;
-      allow write: if false;
-    }
-    
-    match /regencies/{id} {
-      allow read: if request.auth != null;
-      allow write: if false;
-    }
-    
-    match /districts/{id} {
-      allow read: if request.auth != null;
-      allow write: if false;
-    }
-    
-    match /schools/{id} {
-      allow read: if request.auth != null;
-      allow update, create: if request.auth != null && isAdmin();
-      allow delete: if request.auth != null && isAdmin();
+
+    // Master Data (Read-only for users)
+    match /provinces/{id} { allow read: if isSignedIn(); }
+    match /regencies/{id} { allow read: if isSignedIn(); }
+    match /districts/{id} { allow read: if isSignedIn(); }
+
+    match /schools/{schoolId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // Rules for Error Reports (App Check enforced)
+    // Error Reports
     match /error_reports/{reportId} {
-      allow create: if request.app != null || request.auth != null;
-      allow read: if isAdmin();
-      allow update, delete: if isAdmin();
+      allow create: if request.app != null || isSignedIn();
+      allow read, update, delete: if isAdmin();
     }
 
     // Rules for Exams and sub-collections (Grades, Subjects)
     match /exams/{examsId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && isAdmin();
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
 
-      // Fungsi helper untuk cek apakah ujian sedang dibuka
-      function isExamOpen() {
-        let examData = get(/databases/$(database)/documents/exams/$(examsId)).data;
-        return examData.status != "draft" && examData.status != "closed";
-      }
-      
-      // Allow access to grades
+    // Recursive match untuk grades dan subjects agar lebih ringkas
       match /grades/{gradesId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth != null && isAdmin();
+        allow read: if isSignedIn();
+        allow write: if isAdmin();
 
-        // Allow access to subjects
         match /subjects/{subjectsId} {
-          allow read: if request.auth != null;
-          allow write: if request.auth != null && isAdmin();
+          allow read: if isSignedIn();
+          allow write: if isAdmin();
         }
       }
 
+      match /stats_per_school/{schoolId}/perGradeSubject/{key} {
+        allow read: if isSignedIn();
+        allow write: if isAdmin();
+      }
+
       match /answers/{answerId} {
-        allow read: if request.auth != null;
-        
+        allow read: if isSignedIn();
+
         // 🔥 Tambahkan pengecekan isExamOpen() untuk Create
-        allow create: if request.auth != null && (
-          isAdmin() || 
-          (request.auth.uid == request.resource.data.uploadedBy && isExamOpen())
+        allow create: if isAdmin() || (
+        request.resource.data.uploadedBy == request.auth.uid && 
+        isExamOpen(examsId)
         );
 
-        allow update: if request.auth != null && (
-          isAdmin() || 
-          (request.auth.uid == request.resource.data.uploadedBy && 
-          request.auth.uid == resource.data.uploadedBy && isExamOpen())
+        allow update: if isAdmin() || (
+        resource.data.uploadedBy == request.auth.uid && 
+        request.resource.data.uploadedBy == request.auth.uid &&
+        isExamOpen(examsId)
         );
-
         allow delete: if false;
       }
     }
 
-    // Rules for Analytics (Dashboard)
-    match /analytics/{document=**} {
-      allow read: if isAdmin();
-      allow write: if false; // Only updated via Cloud Functions
-    }
-    
-    // Default deny for all other collections
+    // Default deny
     match /{document=**} {
       allow read, write: if false;
     }

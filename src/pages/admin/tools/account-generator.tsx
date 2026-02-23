@@ -47,9 +47,12 @@ export default function AccountGeneratorPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Akun Generator</h1>
-        <p className="text-muted-foreground">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+          <Wrench className="h-8 w-8" />
+          Akun Generator
+        </h1>
+        <p className="text-muted-foreground text-sm">
           Tools untuk membuat data user dummy secara massal untuk keperluan testing.
         </p>
       </div>

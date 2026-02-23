@@ -8,6 +8,7 @@ import {
   query,
   limit,
   addDoc,
+  where,
   serverTimestamp
 } from "firebase/firestore";
 import { auth } from "@/lib/firebase"; // Import auth to get current user
@@ -32,28 +33,45 @@ export const DevService = {
   ): Promise<{ success: boolean; count: number }> {
     // 1. Get Exam
     let targetExamId = examId;
+    let examName = "";
     if (!targetExamId) {
       const examsQuery = query(collection(db, "exams"), limit(1));
       const examsSnap = await getDocs(examsQuery);
       if (examsSnap.empty) {
         throw new Error("Tidak ada ujian yang ditemukan. Buat ujian terlebih dahulu.");
       }
-      targetExamId = examsSnap.docs[0].id;
+      const examDoc = examsSnap.docs[0];
+      targetExamId = examDoc.id;
+      examName = examDoc.data().name || "Ujian Mock";
+    } else {
+      const examSnap = await getDoc(doc(db, "exams", targetExamId));
+      if (examSnap.exists()) {
+        examName = examSnap.data().name || "Ujian Mock";
+      }
     }
 
     // 2. Get Grade
     let targetGradeId = gradeId;
+    let gradeName = "";
     if (!targetGradeId) {
       const gradesRef = collection(db, "exams", targetExamId, "grades");
       const gradesSnap = await getDocs(gradesRef);
       if (gradesSnap.empty) {
         throw new Error("Ujian ini tidak memiliki kelas. Tambahkan kelas terlebih dahulu.");
       }
-      targetGradeId = gradesSnap.docs[0].id;
+      const gradeDoc = gradesSnap.docs[0];
+      targetGradeId = gradeDoc.id;
+      gradeName = gradeDoc.data().name || "Kelas Mock";
+    } else {
+      const gradeSnap = await getDoc(doc(db, "exams", targetExamId, "grades", targetGradeId));
+      if (gradeSnap.exists()) {
+        gradeName = gradeSnap.data().name || "Kelas Mock";
+      }
     }
 
     // 3. Get Subject
     let targetSubjectId = subjectId;
+    let subjectName = "";
     let subjectLayout = 50; // Default
     let answerKey: Record<string, string> = {};
 
@@ -66,6 +84,7 @@ export const DevService = {
       const subjectDoc = subjectsSnap.docs[0];
       targetSubjectId = subjectDoc.id;
       const subData = subjectDoc.data();
+      subjectName = subData.name || "Mata Pelajaran Mock";
       subjectLayout = parseInt(subData.layout || "50");
       answerKey = subData.answerKey || {};
     } else {
@@ -73,6 +92,7 @@ export const DevService = {
       const subjectSnap = await getDoc(subjectRef);
       if (subjectSnap.exists()) {
         const subData = subjectSnap.data();
+        subjectName = subData.name || "Mata Pelajaran Mock";
         subjectLayout = parseInt(subData.layout || "50");
         answerKey = subData.answerKey || {};
       }
@@ -81,11 +101,24 @@ export const DevService = {
     // Use provided schoolId or default to a dummy one if not provided (though page will require it)
     const targetSchoolId = schoolId || "dummy-school-id";
 
+    // 4. Determine UploadedBy (Teacher)
+    let targetUploadedBy = uploadedBy;
+    if (targetUploadedBy === "random") {
+      const teachersRef = collection(db, "users");
+      const q = query(teachersRef, where("role", "==", "teacher"), where("schoolId", "==", targetSchoolId));
+      const teachersSnap = await getDocs(q);
+      if (!teachersSnap.empty) {
+        const randomTeacherDoc = teachersSnap.docs[Math.floor(Math.random() * teachersSnap.docs.length)];
+        targetUploadedBy = randomTeacherDoc.id;
+      } else {
+        targetUploadedBy = auth.currentUser ? auth.currentUser.uid : "dummy-admin-id";
+      }
+    } else if (!targetUploadedBy) {
+      targetUploadedBy = auth.currentUser ? auth.currentUser.uid : "dummy-admin-id";
+    }
+
     // 4. Generate Answers
     const answersRef = collection(db, "exams", targetExamId, "answers");
-
-    // Get current user UID for uploadedBy if not provided
-    const targetUploadedBy = uploadedBy || (auth.currentUser ? auth.currentUser.uid : "dummy-admin-id");
 
     const promises = [];
     const options = ["A", "B", "C", "D", "E"];
@@ -161,6 +194,21 @@ export const DevService = {
     }
 
     await Promise.all(promises);
+
+    // 5. Create History Entry for the User
+    if (targetUploadedBy && targetUploadedBy !== "dummy-admin-id") {
+      const userExamsRef = collection(db, "users", targetUploadedBy, "exams");
+      await addDoc(userExamsRef, {
+        referenceExamId: targetExamId,
+        name: examName,
+        subject: subjectName,
+        subjectId: targetSubjectId,
+        grade: gradeName,
+        gradeId: targetGradeId,
+        createdAt: serverTimestamp(),
+      });
+    }
+
     return { success: true, count };
   },
 

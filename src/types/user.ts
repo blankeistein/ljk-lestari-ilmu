@@ -15,6 +15,7 @@ export interface UserProfile {
   photoUrl: string | null;
   schoolId?: string;
   createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface UserExam {

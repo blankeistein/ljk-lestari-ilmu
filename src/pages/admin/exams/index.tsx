@@ -115,10 +115,13 @@ export default function ExamsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Manajemen Ujian</h1>
-          <p className="text-muted-foreground">
-            Kelola sesi ujian, status, dan jadwal pelaksanaan.
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+            <BookOpen className="h-8 w-8" />
+            Manajemen Ujian
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Kelola informasi akun dan identitas Anda sebagai administrator sistem.
           </p>
         </div>
         <div>

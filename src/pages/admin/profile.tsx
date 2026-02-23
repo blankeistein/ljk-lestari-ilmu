@@ -1,9 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import { User, Camera, Save, Loader2, Trash2, Mail, ShieldCheck } from "lucide-react";
-import { useAdminProfile } from "@/hooks/use-admin-profile";
+import { useProfile } from "@/hooks/use-profile";
 import { ROLE_LABELS } from "@/types/user";
 
 export default function AdminProfilePage() {
@@ -17,15 +22,16 @@ export default function AdminProfilePage() {
     handleDeletePhoto,
     handleFileUpload,
     handleSubmit
-  } = useAdminProfile();
+  } = useProfile();
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-          Profil Admin
+        <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+          <User className="h-8 w-8" />
+          Profil
         </h1>
-        <p className="text-muted-foreground text-lg">
+        <p className="text-muted-foreground text-sm">
           Kelola informasi akun dan identitas Anda sebagai administrator sistem.
         </p>
       </div>
@@ -33,9 +39,8 @@ export default function AdminProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Profile Card */}
         <Card className="lg:col-span-1 h-fit overflow-hidden border-none shadow-xl ring-1 ring-primary/10">
-          <div className="h-32 bg-linear-to-br from-primary/20 via-primary/10 to-transparent" />
           <CardContent className="relative pt-0 flex flex-col items-center">
-            <div className="-mt-16 group relative">
+            <div className="group relative">
               <Avatar className="size-32 border-4 border-background shadow-2xl transition-transform group-hover:scale-105 duration-300">
                 <AvatarImage src={photoUrl || ""} alt={name} className="object-cover" />
                 <AvatarFallback className="text-4xl font-bold bg-primary text-primary-foreground transform transition-colors group-hover:bg-primary/90">
@@ -70,7 +75,7 @@ export default function AdminProfilePage() {
               </p>
             </div>
 
-            <div className="w-full mt-8 pt-6 border-t space-y-3">
+            <div className="w-full mt-4 pt-6 border-t space-y-3">
               {photoUrl && (
                 <Button
                   type="button"
@@ -97,64 +102,67 @@ export default function AdminProfilePage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <label htmlFor="name" className="text-sm font-semibold tracking-wide text-primary/80 uppercase">
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="name">
                     Nama Lengkap
-                  </label>
-                  <div className="relative group">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
+                  </FieldLabel>
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <User className="size-4" />
+                    </InputGroupAddon>
+                    <InputGroupInput
                       id="name"
                       placeholder="Masukkan nama lengkap"
-                      className="pl-10 h-12 text-base focus-visible:ring-primary/30 transition-all border-primary/10 hover:border-primary/30"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                       disabled={loading || uploading}
                       required
                     />
-                  </div>
-                </div>
+                  </InputGroup>
+                </Field>
 
-                <div className="grid gap-2">
-                  <label htmlFor="email" className="text-sm font-semibold tracking-wide text-primary/80 uppercase">
+                <Field>
+                  <FieldLabel htmlFor="email">
                     Alamat Email (Terkunci)
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50" />
-                    <Input
+                  </FieldLabel>
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <Mail className="size-4" />
+                    </InputGroupAddon>
+                    <InputGroupInput
                       id="email"
                       value={profile?.email || ""}
                       disabled
-                      className="pl-10 h-12 bg-muted/30 font-mono text-sm border-dashed border-primary/10 cursor-not-allowed opacity-70"
                     />
-                  </div>
-                  <p className="text-[10px] text-muted-foreground italic px-1">
+                  </InputGroup>
+                  <p className="text-[10px] text-muted-foreground italic mt-1 font-medium">
                     * Email tidak dapat diubah karena merupakan identitas autentikasi utama.
                   </p>
-                </div>
+                </Field>
 
-                <div className="grid gap-2">
-                  <label htmlFor="role" className="text-sm font-semibold tracking-wide text-primary/80 uppercase">
+                <Field>
+                  <FieldLabel htmlFor="role">
                     Level Hak Akses
-                  </label>
-                  <div className="relative">
-                    <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50" />
-                    <Input
+                  </FieldLabel>
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <ShieldCheck className="size-4" />
+                    </InputGroupAddon>
+                    <InputGroupInput
                       id="role"
                       value={ROLE_LABELS[profile?.role || "admin"]}
                       disabled
-                      className="pl-10 h-12 bg-muted/30 cursor-not-allowed opacity-70 border-primary/10"
                     />
-                  </div>
-                </div>
-              </div>
+                  </InputGroup>
+                </Field>
+              </FieldGroup>
 
               <div className="flex justify-end pt-6">
                 <Button
                   type="submit"
+                  size="lg"
                   disabled={loading || uploading}
-                  className="gap-2 px-8 h-12 text-base font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all hover:-translate-y-0.5 active:translate-y-0"
                 >
                   {loading ? (
                     <>

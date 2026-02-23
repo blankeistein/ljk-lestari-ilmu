@@ -1,50 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, FileText } from "lucide-react";
+import { Users, FileText, LayoutDashboard } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useDashboardStats } from "@/hooks/use-dashboard-stats";
 import { useServerStatus } from "@/hooks/use-server-status";
-
-
-const recentSales = [
-  {
-    name: "Budi Santoso",
-    email: "budi@sekolah.sch.id",
-    amount: "150 LJK",
-    status: "success",
-    date: "Baru saja",
-  },
-  {
-    name: "Siti Aminah",
-    email: "siti@sekolah.sch.id",
-    amount: "45 LJK",
-    status: "processing",
-    date: "5 menit lalu",
-  },
-  {
-    name: "Ahmad Fauzi",
-    email: "ahmad@sekolah.sch.id",
-    amount: "200 LJK",
-    status: "success",
-    date: "1 jam lalu",
-  },
-  {
-    name: "Dewi Ratna",
-    email: "dewi@sekolah.sch.id",
-    amount: "Error",
-    status: "failed",
-    date: "2 jam lalu",
-  },
-  {
-    name: "Rudi Hartono",
-    email: "rudi@sekolah.sch.id",
-    amount: "80 LJK",
-    status: "success",
-    date: "3 jam lalu",
-  },
-];
 
 export default function AdminDashboard() {
   const { totalUser, totalLjk, growthData } = useDashboardStats();
@@ -64,9 +23,12 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+            <LayoutDashboard className="h-8 w-8" />
+            Dashboard
+          </h1>
+          <p className="text-muted-foreground text-sm">
             Overview sistem dan aktivitas pengguna hari ini.
           </p>
         </div>

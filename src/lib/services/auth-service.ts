@@ -1,5 +1,5 @@
 import { signOut, GoogleAuthProvider, signInWithPopup, type UserCredential } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import type { UserProfile } from "@/types/user";
 
@@ -27,5 +27,16 @@ export const AuthService = {
       } as UserProfile;
     }
     return null;
+  },
+
+  async createUserProfile(uid: string, data: Partial<UserProfile>): Promise<void> {
+    const userRef = doc(db, "users", uid);
+    await setDoc(userRef, {
+      ...data,
+      uid,
+      role: data.role || "teacher",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
   }
 };

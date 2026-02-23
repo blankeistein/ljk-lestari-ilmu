@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Camera, Save, Loader2, Trash2 } from "lucide-react";
-import { useHeadmasterProfile } from "@/hooks/use-headmaster-profile";
+import { useProfile } from "@/hooks/use-profile";
 
 export default function HeadmasterProfilePage() {
   const {
@@ -17,7 +17,7 @@ export default function HeadmasterProfilePage() {
     handleDeletePhoto,
     handleFileUpload,
     handleSubmit
-  } = useHeadmasterProfile();
+  } = useProfile();
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

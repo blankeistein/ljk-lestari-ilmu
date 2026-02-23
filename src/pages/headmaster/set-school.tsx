@@ -7,7 +7,8 @@ import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { toast } from "sonner";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth-context";
+import { SchoolService } from "@/lib/services/school-service";
 
 export default function SetSchoolPage() {
   const { profile, refreshProfile } = useAuth();
@@ -18,21 +19,34 @@ export default function SetSchoolPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile?.uid) return;
-    if (!schoolId.trim()) {
+
+    const trimmedId = schoolId.trim();
+    if (!trimmedId) {
       toast.error("Kode sekolah harus diisi");
       return;
     }
 
     try {
       setLoading(true);
-      // Here we assume we just update the user's schoolId. 
-      // In a real app, you might want to verify if the school exists first.
+
+      // Verify if school exists
+      try {
+        await SchoolService.getSchoolById(trimmedId);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        toast.error("ID Sekolah tidak ditemukan. Silakan cek kembali kode Anda.");
+        setLoading(false);
+        return;
+      }
+
       await updateDoc(doc(db, "users", profile.uid), {
-        schoolId: schoolId.trim(),
+        schoolId: trimmedId,
       });
+
       toast.success("Berhasil mengatur sekolah!");
       await refreshProfile();
-      navigate("/headmaster");
+      const redirectPath = profile.role === "headmaster" ? "/headmaster" : "/dashboard";
+      navigate(redirectPath);
     } catch (error) {
       console.error("Error setting school:", error);
       toast.error("Gagal mengatur sekolah");

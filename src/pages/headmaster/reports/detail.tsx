@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { ExamService } from "@/lib/services/exam-service";
 import type { Exam, Grade, Subject, GradeSubjectStats } from "@/types/exam";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -106,16 +106,6 @@ export default function HeadmasterReportDetailPage() {
 
   const handleGoBack = () => {
     navigate("/headmaster/reports");
-    return
-    if (subjectId) {
-      searchParams.delete("subjectId");
-      setSearchParams(searchParams);
-    } else if (gradeId) {
-      searchParams.delete("gradeId");
-      setSearchParams(searchParams);
-    } else {
-      navigate("/headmaster/reports");
-    }
   };
 
   const selectGrade = (id: string) => {
@@ -366,9 +356,8 @@ export default function HeadmasterReportDetailPage() {
                         <TableHeader className="bg-muted/50">
                           <TableRow>
                             <TableHead className="w-20">Soal</TableHead>
-                            <TableHead>Benar</TableHead>
-                            <TableHead>Salah</TableHead>
-                            <TableHead>Kosong</TableHead>
+                            <TableHead className="min-w-50">Akurasi (B/S/K)</TableHead>
+                            <TableHead className="w-32">Kesulitan</TableHead>
                             <TableHead>Distribusi Opsi (A/B/C/D/E)</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -376,15 +365,59 @@ export default function HeadmasterReportDetailPage() {
                           {Object.entries(stats.detail).map(([id, s]) => {
                             const correctAnswer = subjects.find(sub => sub.id === subjectId)?.answerKey?.[id];
 
+                            const total = (s.correct || 0) + (s.incorrect || 0) + (s.blank || 0);
+                            const correctPct = total > 0 ? ((s.correct || 0) / total) * 100 : 0;
+                            const incorrectPct = total > 0 ? ((s.incorrect || 0) / total) * 100 : 0;
+                            const blankPct = total > 0 ? ((s.blank || 0) / total) * 100 : 0;
+
+                            let difficulty = "Cukup Sulit";
+                            let difficultyColor = "bg-orange-100 text-orange-700";
+
+                            if (correctPct >= 70) {
+                              difficulty = "Mudah";
+                              difficultyColor = "bg-green-100 text-green-700";
+                            } else if (correctPct < 30) {
+                              difficulty = "Sulit";
+                              difficultyColor = "bg-red-100 text-red-700";
+                            }
+
                             return (
                               <TableRow key={id} className="hover:bg-primary/2">
                                 <TableCell className="font-bold"># {id}</TableCell>
-                                <TableCell className="text-green-600 font-semibold">{s.correct || 0}</TableCell>
-                                <TableCell className="text-red-500">{s.incorrect || 0}</TableCell>
-                                <TableCell className="text-muted-foreground">{s.blank || 0}</TableCell>
+                                <TableCell>
+                                  <div className="space-y-1.5">
+                                    <div className="flex justify-between text-[10px] font-bold">
+                                      <span className="text-green-600 inline-block">{s.correct || 0}B</span>
+                                      <span className="text-red-500 inline-block">{s.incorrect || 0}S</span>
+                                      <span className="text-slate-400 inline-block">{s.blank || 0}K</span>
+                                    </div>
+                                    <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
+                                      <div
+                                        className="bg-green-500 transition-all"
+                                        style={{ width: `${correctPct}%` }}
+                                        title={`Benar: ${correctPct.toFixed(1)}%`}
+                                      />
+                                      <div
+                                        className="bg-red-500 transition-all"
+                                        style={{ width: `${incorrectPct}%` }}
+                                        title={`Salah: ${incorrectPct.toFixed(1)}%`}
+                                      />
+                                      <div
+                                        className="bg-slate-300 transition-all"
+                                        style={{ width: `${blankPct}%` }}
+                                        title={`Kosong: ${blankPct.toFixed(1)}%`}
+                                      />
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge className={`border-none shadow-none font-bold text-[10px] px-2 py-0 ${difficultyColor}`}>
+                                    {difficulty}
+                                  </Badge>
+                                </TableCell>
                                 <TableCell>
                                   <div className="flex gap-2">
-                                    {['A', 'B', 'C', 'D', 'E'].map(choice => {
+                                    {['A', 'B', 'C', 'D'].map(choice => {
                                       const isCorrect = choice === correctAnswer;
                                       return (
                                         <div key={choice} className="flex flex-col items-center">
@@ -393,7 +426,7 @@ export default function HeadmasterReportDetailPage() {
                                           </span>
                                           <Badge
                                             variant={isCorrect ? "default" : "outline"}
-                                            className={`text-[10px] font-mono h-6 ${isCorrect ? 'bg-green-600 hover:bg-green-700 border-none' : ''}`}
+                                            className={`text-[10px] font-mono h-6 ${isCorrect ? 'bg-green-600 hover:bg-green-700 border-none px-1' : 'px-1'}`}
                                           >
                                             {s.choices?.[choice] || 0}
                                           </Badge>

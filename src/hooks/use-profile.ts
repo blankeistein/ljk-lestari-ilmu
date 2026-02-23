@@ -3,9 +3,9 @@ import { toast } from "sonner";
 import { doc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { storage, db } from "@/lib/firebase";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/auth-context";
 
-export function useAdminProfile() {
+export function useProfile() {
   const { profile, refreshProfile } = useAuth();
   const [name, setName] = useState("");
   const [photoUrl, setPhotoUrl] = useState(""); // Current URL in database

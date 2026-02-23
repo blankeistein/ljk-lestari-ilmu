@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Save, ExternalLink, ShieldCheck, HelpCircle } from "lucide-react";
+import { Loader2, Save, ExternalLink, ShieldCheck, HelpCircle, Settings } from "lucide-react";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
@@ -65,7 +65,15 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Pengaturan App</h1>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+            <Settings className="h-8 w-8" />
+            Pengaturan App
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Kelola tautan yang akan didistribusikan ke aplikasi klien melalui Remote Config.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-6">

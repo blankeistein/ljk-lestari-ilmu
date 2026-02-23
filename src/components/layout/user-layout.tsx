@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { useState, useEffect, type ReactNode } from "react";
+import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -18,21 +18,17 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
-  Users,
-  Settings,
   LogOut,
+  User,
   BookOpen,
+  History,
+  School as SchoolIcon,
   Bell,
   Search,
-  User,
-  School,
-  Wrench,
-  ShieldAlert,
-  FileText,
 } from "lucide-react";
 import { AuthService } from "@/lib/services/auth-service";
+import { SchoolService } from "@/lib/services/school-service";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,14 +41,36 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/auth-context";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 
-interface AdminLayoutProps {
+interface UserLayoutProps {
   children?: ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default function UserLayout({ children }: UserLayoutProps) {
   const { profile } = useAuth();
   const location = useLocation();
+  const [schoolName, setSchoolName] = useState<string>("");
+  const [isSchoolLoading, setIsSchoolLoading] = useState(false);
+
+  useEffect(() => {
+    async function fetchSchoolName() {
+      if (profile?.schoolId) {
+        try {
+          setIsSchoolLoading(true);
+          const school = await SchoolService.getSchoolById(profile.schoolId);
+          setSchoolName(school.name);
+        } catch (error) {
+          console.error("Error fetching school name:", error);
+        } finally {
+          setIsSchoolLoading(false);
+        }
+      }
+    }
+
+    fetchSchoolName();
+  }, [profile?.schoolId]);
 
   const handleLogout = async () => {
     try {
@@ -63,57 +81,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }
   };
 
-  const mainNav = [
+  const hasNoSchool = !profile?.schoolId;
+
+  if (hasNoSchool && location.pathname !== "/dashboard/set-school") {
+    return <Navigate to="/dashboard/set-school" replace />;
+  }
+
+  const navItems = [
     {
       title: "Dashboard",
       icon: LayoutDashboard,
-      url: "/admin",
-    }
-  ];
-
-  const managementNav = [
-    {
-      title: "Ujian",
-      icon: BookOpen,
-      url: "/admin/exams",
+      url: "/dashboard",
     },
     {
-      title: "Sekolah",
-      icon: School,
-      url: "/admin/schools",
-    },
-    {
-      title: "Pengguna",
-      icon: Users,
-      url: "/admin/users",
+      title: "Riwayat Scan",
+      icon: History,
+      url: "/dashboard/history",
     },
   ];
-
-  const settingsNav = [
-    {
-      title: "Laporan Error",
-      icon: ShieldAlert,
-      url: "/admin/error-reports",
-    },
-    {
-      title: "Pengaturan",
-      icon: Settings,
-      url: "/admin/settings",
-    },
-  ];
-
-  const devNav = import.meta.env.DEV ? [
-    {
-      title: "Account Generator",
-      icon: Wrench,
-      url: "/admin/tools/account-generator",
-    },
-    {
-      title: "Dummy Answers",
-      icon: FileText,
-      url: "/admin/tools/dummy-answer-generator",
-    }
-  ] : [];
 
   return (
     <SidebarProvider>
@@ -124,17 +109,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <BookOpen className="h-4 w-4" />
             </div>
             <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-              <span className="font-semibold  line-clamp-1">LJK Lestari Ilmu</span>
-              <span className="text-xs text-muted-foreground  line-clamp-1">Admin Panel</span>
+              <span className="font-semibold line-clamp-1">LJK Lestari Ilmu</span>
+              <span className="text-xs text-muted-foreground truncate max-w-37.5 line-clamp-1">
+                Panel Guru
+              </span>
             </div>
           </div>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Utama</SidebarGroupLabel>
+            <SidebarGroupLabel>Menu Utama</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {mainNav.map((item) => (
+                {navItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
@@ -151,74 +138,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>Manajemen</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {managementNav.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === item.url}
-                      tooltip={item.title}
-                    >
-                      <Link to={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>Sistem</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {settingsNav.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === item.url}
-                      tooltip={item.title}
-                    >
-                      <Link to={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          {import.meta.env.DEV && (
-            <SidebarGroup>
-              <SidebarGroupLabel>Dev Mode</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {devNav.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={location.pathname === item.url}
-                        tooltip={item.title}
-                      >
-                        <Link to={item.url}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
@@ -232,12 +151,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <Avatar className="h-8 w-8 rounded-lg">
                       <AvatarImage src={profile?.photoUrl || ""} alt={profile?.name || "User"} />
                       <AvatarFallback className="rounded-lg">
-                        {profile?.name?.substring(0, 2).toUpperCase() || "AD"}
+                        {profile?.name?.substring(0, 2).toUpperCase() || "US"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-semibold">{profile?.name || "Admin User"}</span>
-                      <span className="truncate text-xs">{profile?.email || "admin@example.com"}</span>
+                      <span className="truncate font-semibold">{profile?.name || "User"}</span>
+                      <span className="truncate text-xs">{profile?.email}</span>
                     </div>
                     <User className="ml-auto size-4" />
                   </SidebarMenuButton>
@@ -253,19 +172,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       <Avatar className="h-8 w-8 rounded-lg">
                         <AvatarImage src={profile?.photoUrl || ""} alt={profile?.name || "User"} />
                         <AvatarFallback className="rounded-lg">
-                          {profile?.name?.substring(0, 2).toUpperCase() || "AD"}
+                          {profile?.name?.substring(0, 2).toUpperCase() || "US"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">{profile?.name || "Admin User"}</span>
-                        <span className="truncate text-xs">{profile?.email || "admin@example.com"}</span>
+                        <span className="truncate font-semibold">{profile?.name}</span>
+                        <span className="truncate text-xs">{profile?.email}</span>
                       </div>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
                     <DropdownMenuItem asChild>
-                      <Link to="/admin/profile">
+                      <Link to="/dashboard/profile">
                         <User className="mr-2 h-4 w-4" />
                         Profil
                       </Link>
@@ -285,15 +204,32 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </Sidebar>
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b px-4 bg-background z-10 sticky top-0">
-          <SidebarTrigger className="-ml-1" />
+          <div className="flex items-center gap-2 px-1">
+            <SidebarTrigger className="-ml-1" />
+            <div className="h-4 w-px bg-border mx-2 hidden sm:block" />
+            <div className="hidden sm:flex items-center gap-2 ">
+              <SchoolIcon className="h-4 w-4 text-muted-foreground" />
+              {isSchoolLoading ? (
+                <Skeleton className="h-4 w-32" />
+              ) : (
+                <span className="text-sm font-medium truncate max-w-48 lg:max-w-96">
+                  {schoolName || "Sekolah Belum Terdaftar"}
+                </span>
+              )}
+            </div>
+          </div>
           <div className="ml-auto flex items-center gap-2">
             <div className="relative hidden md:block">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Cari..." className="pl-8 w-64 h-9" />
             </div>
             <ModeToggle />
-            <button className="h-9 w-9 flex items-center justify-center rounded-md border hover:bg-accent">
+            <button className="h-9 w-9 flex items-center justify-center rounded-md border hover:bg-accent relative">
               <Bell className="h-4 w-4" />
+              <span className="absolute top-2 right-2 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
             </button>
           </div>
         </header>

@@ -61,6 +61,7 @@ import {
   FileText,
   X,
   School,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -181,7 +182,15 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Manajemen User</h1>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+            <Users className="h-8 w-8" />
+            Manajemen User
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Kelola informasi akun dan identitas Anda sebagai administrator sistem.
+          </p>
+        </div>
         <Button onClick={() => setIsAddSheetOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Tambah User
         </Button>

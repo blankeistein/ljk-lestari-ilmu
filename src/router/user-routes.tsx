@@ -1,21 +1,19 @@
 import { type RouteObject, Outlet } from "react-router-dom";
 import { RoleGate } from "@/components/auth/role-gate";
-import { Dashboard } from "@/pages/placeholders";
+import UserLayout from "@/components/layout/user-layout";
+import Dashboard from "@/pages/dashboard";
+import SetSchoolPage from "@/pages/headmaster/set-school";
+import ScanHistoryPage from "@/pages/dashboard/history";
+import ScanHistoryDetailPage from "@/pages/dashboard/history-detail";
+import ProfilePage from "@/pages/dashboard/profile";
 
 export const userRoutes: RouteObject = {
   path: "/dashboard",
   element: (
     <RoleGate allowedRoles={["user", "teacher"]}>
-      {/* Placeholder for User Layout */}
-      <div className="min-h-screen bg-background">
-        <header className="border-b p-4 flex justify-between items-center">
-          <h1 className="font-bold">Panel User</h1>
-          {/* Logout button can be added here */}
-        </header>
-        <main className="p-4">
-          <Outlet />
-        </main>
-      </div>
+      <UserLayout>
+        <Outlet />
+      </UserLayout>
     </RoleGate>
   ),
   children: [
@@ -25,7 +23,19 @@ export const userRoutes: RouteObject = {
     },
     {
       path: "profile",
-      element: <div className="p-4"><h1>Profil Saya</h1></div>,
+      element: <ProfilePage />,
+    },
+    {
+      path: "history",
+      element: <ScanHistoryPage />,
+    },
+    {
+      path: "history/:examId/:gradeId/:subjectId",
+      element: <ScanHistoryDetailPage />,
+    },
+    {
+      path: "set-school",
+      element: <SetSchoolPage />,
     },
   ],
 };
